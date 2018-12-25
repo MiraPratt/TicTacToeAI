@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Arrays;
 
 
 
@@ -8,7 +9,14 @@ public class Board extends JPanel{
 	
 	private String turn = "x";
 	
+	//temporary
+	private int t = 0;
+	
 	private Tile[][] tiles;
+	
+	private Tile AITile;
+	
+	private boolean gameover = false;
 	
 	public  Board() {
 		
@@ -30,19 +38,40 @@ public class Board extends JPanel{
 				getTiles()[j][i].addActionListener(new ActionListener(){
 							
 					public void actionPerformed(ActionEvent e) {
-						Tile t = (Tile)e.getSource();	
-						mark(t);
-						int result = outcome();
-						int[] r = toArray();
-						System.out.println(r[0] + "" + r[1] + r[2]);
-						if(result > 0) {
-							if(result == 1) {
-								getTiles()[1][1].setText("x won");
+						if(!gameover) {
+							//player goes
+							Tile t1 = (Tile)e.getSource();	
+							mark(t1);
+							
+							
+							int result = outcome(toArray());
+							if(result > 0) {
+								if(result == 1) {
+									getTiles()[1][1].setText("x won");
+									gameover = true;
+								}
+								else {
+									getTiles()[1][1].setText("o won");
+									gameover = true;
+								}	
 							}
-							else {
-								getTiles()[1][1].setText("o won");
+							//AI goes
+							AIMove(true, true, toArray());
+							mark(AITile);
+					
+							
+							
+							result = outcome(toArray());
+							if(result > 0) {
+								if(result == 1) {
+									getTiles()[1][1].setText("x won");
+									gameover = true;
+								}
+								else {
+									getTiles()[1][1].setText("o won");
+									gameover = true;
+								}	
 							}
-								
 						}
 					}
 							
@@ -53,10 +82,129 @@ public class Board extends JPanel{
 	    this.setVisible(true);
 	    
 	}
+	
+	public String arrayToString(int[] arr) {
+		String temp = "";
+	     for(int i = 0 ; i < arr.length ; i++) {
+	    	 temp = temp + arr[i];
+	     }
+	     return temp;
+	}
+	
+	public int[] AIMove(boolean max,boolean firstcall, int[] arr) {
+		
+		int[][] possiblemoves = {arr.clone() , arr.clone(), arr.clone(), arr.clone(), arr.clone(), arr.clone(), arr.clone(), arr.clone(), arr.clone()};
+		int[] outcomes = {0,0,0,0,0,0,0,0,0};
+		
+		//make an array to represent the board state after all possible moves
+		//player o turn
+		if(max) {
+			for(int i = 0; i < 9 ; i++) {
+				if(possiblemoves[i][i] == 0) {
+					possiblemoves[i][i] = 2;
+				}
+			}
+		}
+		//player x turn
+		if(!max) {
+			for(int i = 0; i < 9 ; i++) {
+				if(possiblemoves[i][i] == 0) {
+					possiblemoves[i][i] = 1;
+				}
+			}
+		}
+		
+		if(t < 8) {
+			System.out.println("AIMove class has been called");
+			System.out.println("base array:" + arrayToString(arr));
+			System.out.println("generated arrays:\n" + arrayToString(possiblemoves[0]) + " \n" + arrayToString(possiblemoves[1])+ " \n"+ arrayToString(possiblemoves[2])+ " \n"+ arrayToString(possiblemoves[3])+ " \n"+ arrayToString(possiblemoves[4])+ " \n"+ arrayToString(possiblemoves[5])+ " \n"+ arrayToString(possiblemoves[6])+ " \n"+ arrayToString(possiblemoves[7])+ " \n"+ arrayToString(possiblemoves[8]));
+	        t++;
+		}
+		//outcome of those possible moves
+		for(int i = 0; i < 9 ; i++) {
 
-	public int outcome() {
-		int[] arr = toArray();
+			outcomes[i] = outcome(possiblemoves[i]);
+			//System.out.println(outcomes[i]);
+			if(outcomes[i] == 0) {
+				//outcome of the possible moves of the possible move
+				
+				if(!Arrays.equals(arr, possiblemoves[i])) { //don't call on itself
+					possiblemoves[i] = AIMove(!max,false, possiblemoves[i]);
+				}
+				outcomes[i] = outcome(possiblemoves[i]);
+			}
+		}
+		
+		
+		//what tile should we pick at the end of all this
+		if(firstcall) {
+			//pick the win or draw if max is true
+
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 3) {
+					AITile = getTiles()[i % 3][i / 3];
+				}
+			}
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 2) {
+					AITile = getTiles()[i % 3][i / 3];
+				}
+			}
+	
+		}
+		
+		
+		//return the best board state
+		if(max) {
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 2) {
+					return possiblemoves[i];
+				}
+			}
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 3) {
+					return possiblemoves[i];
+				}
+			}
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 0) {
+					return possiblemoves[i];
+				}
+			}
+		}	
+		
+		//return best board state for opponent
+		if(!max) {
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 1) {
+					return possiblemoves[i];
+				}
+			}
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 3) {
+					return possiblemoves[i];
+				}
+			}
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 0) {
+					return possiblemoves[i];
+				}
+			}
+		}
+		
+		
+		//this should never get run and is here for the compiler
+		return possiblemoves[0];
+		
+		
+		
+		
+	}
+
+	public int outcome(int[] arr) {
 		int r = 0;
+		
+		//x wins
 	    if(arr[0] == 1 && arr[1] == 1 && arr[2] == 1) {
 	    	r = 1;
 	    }
@@ -82,7 +230,7 @@ public class Board extends JPanel{
 	    	r = 1;
 	    }
 	    
-	    
+	    //o wins
 	    if(arr[0] == 2 && arr[1] == 2 && arr[2] == 2) {
 	    	r = 2;
 	    }
@@ -104,9 +252,15 @@ public class Board extends JPanel{
 	    if(arr[1] == 2 && arr[4] == 2 && arr[7] == 2) {
 	    	r = 2;
 	    }
-	    if(arr[2] == 2 && arr[5] == 2 && arr[9] == 2) {
+	    if(arr[2] == 2 && arr[5] == 2 && arr[8] == 2) {
 	    	r = 2;
 	    }
+	    
+	    //tie
+	    if(arr[0] > 0 && arr[1]  > 0 && arr[2]  > 0 && arr[3]  > 0 && arr[4]  > 0 && arr[5]  > 0 && arr[6]  > 0 && arr[7]  > 0 && arr[8]  > 0) {
+	    	r = 3;
+	    }
+	    
 	    return r;
 	    
 	}
