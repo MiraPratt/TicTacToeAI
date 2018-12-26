@@ -50,13 +50,18 @@ public class Board extends JPanel{
 									getTiles()[1][1].setText("x won");
 									gameover = true;
 								}
-								else {
+								if(result == 2){
 									getTiles()[1][1].setText("o won");
+									gameover = true;
+								}	
+								if(result == 3){
+									getTiles()[1][1].setText("tie");
 									gameover = true;
 								}	
 							}
 							//AI goes
 							AIMove(true, true, toArray());
+							//System.out.println(Integer.toString(t));
 							mark(AITile);
 					
 							
@@ -67,8 +72,12 @@ public class Board extends JPanel{
 									getTiles()[1][1].setText("x won");
 									gameover = true;
 								}
-								else {
+								if(result == 2){
 									getTiles()[1][1].setText("o won");
+									gameover = true;
+								}	
+								if(result == 3){
+									getTiles()[1][1].setText("tie");
 									gameover = true;
 								}	
 							}
@@ -114,7 +123,7 @@ public class Board extends JPanel{
 			}
 		}
 		
-		if(t < 8) {
+		if(t < 0) {
 			System.out.println("AIMove class has been called");
 			System.out.println("base array:" + arrayToString(arr));
 			System.out.println("generated arrays:\n" + arrayToString(possiblemoves[0]) + " \n" + arrayToString(possiblemoves[1])+ " \n"+ arrayToString(possiblemoves[2])+ " \n"+ arrayToString(possiblemoves[3])+ " \n"+ arrayToString(possiblemoves[4])+ " \n"+ arrayToString(possiblemoves[5])+ " \n"+ arrayToString(possiblemoves[6])+ " \n"+ arrayToString(possiblemoves[7])+ " \n"+ arrayToString(possiblemoves[8]));
@@ -124,12 +133,12 @@ public class Board extends JPanel{
 		for(int i = 0; i < 9 ; i++) {
 
 			outcomes[i] = outcome(possiblemoves[i]);
-			//System.out.println(outcomes[i]);
 			if(outcomes[i] == 0) {
 				//outcome of the possible moves of the possible move
 				
 				if(!Arrays.equals(arr, possiblemoves[i])) { //don't call on itself
 					possiblemoves[i] = AIMove(!max,false, possiblemoves[i]);
+					t++;
 				}
 				outcomes[i] = outcome(possiblemoves[i]);
 			}
@@ -139,15 +148,30 @@ public class Board extends JPanel{
 		//what tile should we pick at the end of all this
 		if(firstcall) {
 			//pick the win or draw if max is true
-
-			for(int i = 0; i < 9 ; i++) {
-				if(outcomes[i] == 3) {
-					AITile = getTiles()[i % 3][i / 3];
+			if(max) {
+				System.out.println(arrayToString(outcomes));
+				for(int i = 0; i < 9 ; i++) {
+					if(outcomes[i] == 1) {
+						AITile = getTiles()[i % 3][i / 3];
+						//System.out.println("Loss assigned" + i);
+					}
 				}
-			}
-			for(int i = 0; i < 9 ; i++) {
-				if(outcomes[i] == 2) {
-					AITile = getTiles()[i % 3][i / 3];
+				for(int i = 0; i < 9 ; i++) {
+					if(outcomes[i] == 3) {
+						AITile = getTiles()[i % 3][i / 3];
+						//System.out.println("Tie assigned" + i);
+					}
+				}
+				//pick center square if all else is equal
+				if(outcomes[4] == 3) {
+					AITile = getTiles()[4 % 3][4 / 3];
+					//System.out.println("Tie assigned" + i);
+				}
+				for(int i = 0; i < 9 ; i++) {
+					if(outcomes[i] == 2) {
+						AITile = getTiles()[i % 3][i / 3];
+						//System.out.println("Win assigned" + i);
+					}
 				}
 			}
 	
@@ -171,6 +195,11 @@ public class Board extends JPanel{
 					return possiblemoves[i];
 				}
 			}
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 1) {
+					return possiblemoves[i];
+				}
+			}
 		}	
 		
 		//return best board state for opponent
@@ -190,6 +219,11 @@ public class Board extends JPanel{
 					return possiblemoves[i];
 				}
 			}
+			for(int i = 0; i < 9 ; i++) {
+				if(outcomes[i] == 2) {
+					return possiblemoves[i];
+				}
+			}
 		}
 		
 		
@@ -203,6 +237,11 @@ public class Board extends JPanel{
 
 	public int outcome(int[] arr) {
 		int r = 0;
+		
+		   //tie
+	    if(arr[0] > 0 && arr[1]  > 0 && arr[2]  > 0 && arr[3]  > 0 && arr[4]  > 0 && arr[5]  > 0 && arr[6]  > 0 && arr[7]  > 0 && arr[8]  > 0) {
+	    	r = 3;
+	    }
 		
 		//x wins
 	    if(arr[0] == 1 && arr[1] == 1 && arr[2] == 1) {
@@ -255,11 +294,7 @@ public class Board extends JPanel{
 	    if(arr[2] == 2 && arr[5] == 2 && arr[8] == 2) {
 	    	r = 2;
 	    }
-	    
-	    //tie
-	    if(arr[0] > 0 && arr[1]  > 0 && arr[2]  > 0 && arr[3]  > 0 && arr[4]  > 0 && arr[5]  > 0 && arr[6]  > 0 && arr[7]  > 0 && arr[8]  > 0) {
-	    	r = 3;
-	    }
+
 	    
 	    return r;
 	    
