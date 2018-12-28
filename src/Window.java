@@ -17,6 +17,18 @@ public class Window extends JFrame {
 	public static void main(String[] args) {
 		
 		Window win = new Window();
+		
+		//testing a board state
+		/*
+		win.getBoard().getTiles()[0][0].setText("x");
+		win.getBoard().getTiles()[1][1].setText("o");
+		win.getBoard().getTiles()[2][1].setText("x");
+		win.getBoard().getTiles()[2][2].setText("o");
+		*/
+	}
+	
+	public Board getBoard() {
+		return b;
 	}
 	
 }

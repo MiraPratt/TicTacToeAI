@@ -39,48 +39,22 @@ public class Board extends JPanel{
 							
 					public void actionPerformed(ActionEvent e) {
 						if(!gameover) {
-							//player goes
+							//Player goes
 							Tile t1 = (Tile)e.getSource();	
 							mark(t1);
 							
+							int result;
+							result = outcome(toArray());
+							whoWon(result);
 							
-							int result = outcome(toArray());
-							if(result > 0) {
-								if(result == 1) {
-									getTiles()[1][1].setText("x won");
-									gameover = true;
-								}
-								if(result == 2){
-									getTiles()[1][1].setText("o won");
-									gameover = true;
-								}	
-								if(result == 3){
-									getTiles()[1][1].setText("tie");
-									gameover = true;
-								}	
-							}
 							//AI goes
 							AIMove(true, true, toArray());
-							//System.out.println(Integer.toString(t));
 							mark(AITile);
+							AITile = getTiles()[0][2];
 					
 							
-							
 							result = outcome(toArray());
-							if(result > 0) {
-								if(result == 1) {
-									getTiles()[1][1].setText("x won");
-									gameover = true;
-								}
-								if(result == 2){
-									getTiles()[1][1].setText("o won");
-									gameover = true;
-								}	
-								if(result == 3){
-									getTiles()[1][1].setText("tie");
-									gameover = true;
-								}	
-							}
+							whoWon(result);
 						}
 					}
 							
@@ -92,6 +66,21 @@ public class Board extends JPanel{
 	    
 	}
 	
+	public void whoWon(int result) {
+		if(result == 1) {
+			getTiles()[1][1].setText("x won");
+			gameover = true;
+		}
+		if(result == 2){
+			getTiles()[1][1].setText("o won");
+			gameover = true;
+		}	
+		if(result == 3){
+			getTiles()[1][1].setText("tie");
+			gameover = true;
+		}	
+	}
+	
 	public String arrayToString(int[] arr) {
 		String temp = "";
 	     for(int i = 0 ; i < arr.length ; i++) {
@@ -99,6 +88,8 @@ public class Board extends JPanel{
 	     }
 	     return temp;
 	}
+	
+	
 	
 	public int[] AIMove(boolean max,boolean firstcall, int[] arr) {
 		
@@ -115,7 +106,7 @@ public class Board extends JPanel{
 			}
 		}
 		//player x turn
-		if(!max) {
+		else {
 			for(int i = 0; i < 9 ; i++) {
 				if(possiblemoves[i][i] == 0) {
 					possiblemoves[i][i] = 1;
@@ -129,16 +120,15 @@ public class Board extends JPanel{
 			System.out.println("generated arrays:\n" + arrayToString(possiblemoves[0]) + " \n" + arrayToString(possiblemoves[1])+ " \n"+ arrayToString(possiblemoves[2])+ " \n"+ arrayToString(possiblemoves[3])+ " \n"+ arrayToString(possiblemoves[4])+ " \n"+ arrayToString(possiblemoves[5])+ " \n"+ arrayToString(possiblemoves[6])+ " \n"+ arrayToString(possiblemoves[7])+ " \n"+ arrayToString(possiblemoves[8]));
 	        t++;
 		}
-		//outcome of those possible moves
+		//evaluation of those possible moves
 		for(int i = 0; i < 9 ; i++) {
-
+				
 			outcomes[i] = outcome(possiblemoves[i]);
+			
 			if(outcomes[i] == 0) {
 				//outcome of the possible moves of the possible move
-				
 				if(!Arrays.equals(arr, possiblemoves[i])) { //don't call on itself
-					possiblemoves[i] = AIMove(!max,false, possiblemoves[i]);
-					t++;
+					possiblemoves[i] = AIMove(!max , false , possiblemoves[i]);
 				}
 				outcomes[i] = outcome(possiblemoves[i]);
 			}
@@ -147,32 +137,31 @@ public class Board extends JPanel{
 		
 		//what tile should we pick at the end of all this
 		if(firstcall) {
+			System.out.println(arrayToString(outcomes));
 			//pick the win or draw if max is true
 			if(max) {
-				System.out.println(arrayToString(outcomes));
+				/*
 				for(int i = 0; i < 9 ; i++) {
 					if(outcomes[i] == 1) {
 						AITile = getTiles()[i % 3][i / 3];
-						//System.out.println("Loss assigned" + i);
 					}
-				}
+				}*/
 				for(int i = 0; i < 9 ; i++) {
 					if(outcomes[i] == 3) {
 						AITile = getTiles()[i % 3][i / 3];
-						//System.out.println("Tie assigned" + i);
 					}
 				}
 				//pick center square if all else is equal
 				if(outcomes[4] == 3) {
 					AITile = getTiles()[4 % 3][4 / 3];
-					//System.out.println("Tie assigned" + i);
 				}
+				
 				for(int i = 0; i < 9 ; i++) {
 					if(outcomes[i] == 2) {
 						AITile = getTiles()[i % 3][i / 3];
-						//System.out.println("Win assigned" + i);
 					}
 				}
+				
 			}
 	
 		}
@@ -195,15 +184,8 @@ public class Board extends JPanel{
 					return possiblemoves[i];
 				}
 			}
-			for(int i = 0; i < 9 ; i++) {
-				if(outcomes[i] == 1) {
-					return possiblemoves[i];
-				}
-			}
-		}	
-		
-		//return best board state for opponent
-		if(!max) {
+		}	//return best board state for opponent
+		else {
 			for(int i = 0; i < 9 ; i++) {
 				if(outcomes[i] == 1) {
 					return possiblemoves[i];
@@ -216,11 +198,6 @@ public class Board extends JPanel{
 			}
 			for(int i = 0; i < 9 ; i++) {
 				if(outcomes[i] == 0) {
-					return possiblemoves[i];
-				}
-			}
-			for(int i = 0; i < 9 ; i++) {
-				if(outcomes[i] == 2) {
 					return possiblemoves[i];
 				}
 			}
