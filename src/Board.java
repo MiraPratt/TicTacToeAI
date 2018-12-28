@@ -9,9 +9,6 @@ public class Board extends JPanel{
 	
 	private String turn = "x";
 	
-	//temporary
-	private int t = 0;
-	
 	private Tile[][] tiles;
 	
 	private Tile AITile;
@@ -50,6 +47,8 @@ public class Board extends JPanel{
 							//AI goes
 							AIMove(true, true, toArray());
 							mark(AITile);
+							
+							//work around for an undiscovered bug
 							AITile = getTiles()[0][2];
 					
 							
@@ -114,20 +113,14 @@ public class Board extends JPanel{
 			}
 		}
 		
-		if(t < 0) {
-			System.out.println("AIMove class has been called");
-			System.out.println("base array:" + arrayToString(arr));
-			System.out.println("generated arrays:\n" + arrayToString(possiblemoves[0]) + " \n" + arrayToString(possiblemoves[1])+ " \n"+ arrayToString(possiblemoves[2])+ " \n"+ arrayToString(possiblemoves[3])+ " \n"+ arrayToString(possiblemoves[4])+ " \n"+ arrayToString(possiblemoves[5])+ " \n"+ arrayToString(possiblemoves[6])+ " \n"+ arrayToString(possiblemoves[7])+ " \n"+ arrayToString(possiblemoves[8]));
-	        t++;
-		}
-		//evaluation of those possible moves
+		//evaluation of possible moves
 		for(int i = 0; i < 9 ; i++) {
 				
 			outcomes[i] = outcome(possiblemoves[i]);
 			
 			if(outcomes[i] == 0) {
 				//outcome of the possible moves of the possible move
-				if(!Arrays.equals(arr, possiblemoves[i])) { //don't call on itself
+				if(!Arrays.equals(arr, possiblemoves[i])) { //don't call on itself else infinite loop
 					possiblemoves[i] = AIMove(!max , false , possiblemoves[i]);
 				}
 				outcomes[i] = outcome(possiblemoves[i]);
@@ -137,7 +130,6 @@ public class Board extends JPanel{
 		
 		//what tile should we pick at the end of all this
 		if(firstcall) {
-			System.out.println(arrayToString(outcomes));
 			//pick the win or draw if max is true
 			if(max) {
 				/*
@@ -151,7 +143,7 @@ public class Board extends JPanel{
 						AITile = getTiles()[i % 3][i / 3];
 					}
 				}
-				//pick center square if all else is equal
+				//pick center square if all else is equal, work around for an undiscovered bug
 				if(outcomes[4] == 3) {
 					AITile = getTiles()[4 % 3][4 / 3];
 				}
